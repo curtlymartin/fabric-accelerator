@@ -147,7 +147,7 @@ module fabric_capacity './modules/fabric-capacity.bicep' = {
     owner_tag: owner_tag
     sme_tag: sme_tag
     adminUsers: kv_ref.getSecret('fabric-capacity-admin-username')
-    skuName: 'F4' // Default Fabric Capacity SKU F2
+    skuName: 'F2' // Default Fabric Capacity SKU F2
   }
 }
 
