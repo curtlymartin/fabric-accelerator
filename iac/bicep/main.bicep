@@ -106,7 +106,7 @@ module kv './modules/keyvault.bicep' = {
   scope: fabric_rg
   params:{
      location: fabric_rg.location
-     keyvault_name: 'ba-kv01'
+     keyvault_name: 'cdp-kv01'
      cost_centre_tag: cost_centre_tag
      owner_tag: owner_tag
      sme_tag: sme_tag
@@ -130,9 +130,9 @@ module audit_integration './modules/audit.bicep' = if(enable_audit) {
     cost_centre_tag: cost_centre_tag
     owner_tag: owner_tag
     sme_tag: sme_tag
-    audit_storage_name: 'baauditstorage01'
+    audit_storage_name: 'cdpauditstorage01'
     audit_storage_sku: 'Standard_LRS'    
-    audit_loganalytics_name: 'ba-loganalytics01'
+    audit_loganalytics_name: 'cdp-loganalytics01'
   }
 }
 
@@ -141,7 +141,7 @@ module fabric_capacity './modules/fabric-capacity.bicep' = {
   name: fabric_deployment_name
   scope: fabric_rg
   params:{
-    fabric_name: 'bafabric01'
+    fabric_name: 'cdpfabric01'
     location: fabric_rg.location
     cost_centre_tag: cost_centre_tag
     owner_tag: owner_tag
@@ -156,8 +156,8 @@ module controldb './modules/sqldb.bicep' = {
   name: controldb_deployment_name
   scope: fabric_rg
   params:{
-     sqlserver_name: 'ba-sql01'
-     database_name: 'controlDB' 
+     sqlserver_name: 'cdp-sql01'
+     database_name: 'cdpcontrolDB' 
      location: fabric_rg.location
      cost_centre_tag: cost_centre_tag
      owner_tag: owner_tag
