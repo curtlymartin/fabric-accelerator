@@ -48,7 +48,7 @@ param audit_storage_name string = 'cdpauditstorage01'
 param audit_storage_rg string = auditrg
 
 @description('Managed Identity principal ID for audit access')
-param audit_principal_id string
+param audit_principal_id string ='6f9a59e7-038b-4326-a2e0-27cf6a6b8b8c'
 
 // Variables
 var fabric_deployment_name = 'fabric_dataplatform_deployment_${deployment_suffix}'
