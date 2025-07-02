@@ -45,12 +45,6 @@ param enable_audit bool = true
 @description('Resource group where audit resources will be deployed if enabled. Resource group will be created if it doesnt exist')
 param auditrg string = 'cdp'
 
-@description('Storage account name for audit logging')
-param audit_storage_name string = 'cdpauditstorage01'
-
-@description('Storage account resource group')
-param audit_storage_rg string = auditrg
-
 
 
 // Variables
@@ -140,7 +134,7 @@ module audit_integration './modules/audit.bicep' = if (enable_audit) {
     cost_centre_tag: cost_centre_tag
     owner_tag: owner_tag
     sme_tag: sme_tag
-    audit_storage_name: audit_storage_name
+    audit_storage_name:'cdpauditstorage01'
     audit_storage_sku: 'Standard_LRS'
     audit_loganalytics_name: 'cdp-loganalytics01'
   }
@@ -178,7 +172,7 @@ module controldb './modules/sqldb.bicep' = {
     database_sku_name: 'GP_S_Gen5_1'
     enable_purview: enable_purview
     purview_resource: enable_purview ? purview.outputs.purview_resource : {}
-    enable_audit: enable_audit
+    enable_audit: false
     audit_storage_name: enable_audit ? audit_integration.outputs.audit_storage_uniquename : ''
     auditrg: enable_audit ? audit_rg.name : ''
   }
