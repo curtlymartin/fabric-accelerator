@@ -20,11 +20,11 @@ jobs:
 
     # Deploy Bicep file
     - name: deploy
-      uses: azure/arm-deploy@v1
+      uses: azure/arm-deploy@v2
       with:
         scope: subscription
         region: australiaeast
         subscriptionId: ${{ secrets.SUBSCRIPTION_ID }}
         template: iac/bicep/main.bicep
         # parameters: 'k1=v1 k2=v2 k3=v3'
-        failOnStdErr: false
+        failOnStdErr: true
