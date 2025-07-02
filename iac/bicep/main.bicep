@@ -51,8 +51,7 @@ param audit_storage_name string = 'cdpauditstorage01'
 @description('Storage account resource group')
 param audit_storage_rg string = auditrg
 
-@description('Managed Identity principal ID for audit access')
-param audit_principal_id string ='6f9a59e7-038b-4326-a2e0-27cf6a6b8b8c'
+
 
 // Variables
 var fabric_deployment_name = 'fabric_dataplatform_deployment_${deployment_suffix}'
@@ -60,8 +59,7 @@ var purview_deployment_name = 'purview_deployment_${deployment_suffix}'
 var keyvault_deployment_name = 'keyvault_deployment_${deployment_suffix}'
 var audit_deployment_name = 'audit_deployment_${deployment_suffix}'
 var controldb_deployment_name = 'controldb_deployment_${deployment_suffix}'
-var assign_storage_role_reader_name = 'assign_storage_reader_${deployment_suffix}'
-var assign_storage_role_contributor_name = 'assign_storage_contributor_${deployment_suffix}'
+
 
 // Create data platform resource group
 resource fabric_rg 'Microsoft.Resources/resourceGroups@2024-03-01' = {
@@ -183,25 +181,5 @@ module controldb './modules/sqldb.bicep' = {
     enable_audit: enable_audit
     audit_storage_name: enable_audit ? audit_integration.outputs.audit_storage_uniquename : ''
     auditrg: enable_audit ? audit_rg.name : ''
-  }
-}
-
-// Assign Storage Blob Data Reader role
-module assign_reader './modules/assign-storage-role.bicep' = if (enable_audit) {
-  name: assign_storage_role_reader_name
-  scope: resourceGroup(audit_storage_rg)
-  params: {
-    principalId: audit_principal_id
-    roleDefinitionId: 'Microsoft.Storage/storageAccounts/${audit_storage_name}/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7'
-  }
-}
-
-// Assign Storage Blob Data Contributor role
-module assign_contributor './modules/assign-storage-role.bicep' = if (enable_audit) {
-  name: assign_storage_role_contributor_name
-  scope: resourceGroup(audit_storage_rg)
-  params: {
-    principalId: audit_principal_id
-    roleDefinitionId: 'Microsoft.Storage/storageAccounts/${audit_storage_name}/providers/Microsoft.Authorization/roleDefinitions/ba92f5b4-2d11-453d-a403-e96b0029c9fe'
   }
 }
