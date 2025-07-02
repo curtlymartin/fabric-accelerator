@@ -6,16 +6,17 @@ targetScope = 'subscription'
 param dprg string= 'cdp'
 
 @description('Microsoft Fabric Resource group location')
+//CM - it's not stipulated whether to use the location ID or just the Location. In this case below Location ID would be: australiasoutheast
 param rglocation string = 'Australia Southeast'
 
 @description('Cost Centre tag that will be applied to all resources in this deployment')
 param cost_centre_tag string = 'cdp'
 
 @description('System Owner tag that will be applied to all resources in this deployment')
-param owner_tag string = 'curtlymartin_outlook.com#EXT#@curtlymartinoutlook562.onmicrosoft.com'
+param owner_tag string = 'Curt Martin'
 
 @description('Subject Matter EXpert (SME) tag that will be applied to all resources in this deployment')
-param sme_tag string ='curtlymartin_outlook.com#EXT#@curtlymartinoutlook562.onmicrosoft.com'
+param sme_tag string ='Curt Martin'
 
 @description('Timestamp that will be appendedto the deployment name')
 param deployment_suffix string = utcNow()
@@ -30,7 +31,7 @@ param enable_purview bool = true
 param purviewrg string= 'cdp'
 
 @description('Location of Purview resource. This may not be same as the Fabric resource group location')
-param purview_location string= 'westus2'
+param purview_location string= 'australiasoutheast'
 
 @description('Resource Name of new or existing Purview Account. Must be globally unique. Specify a resource name if either create_purview=true or enable_purview=true')
 param purview_name string = 'curtlymartin-cdp-purview' // Replace with a Globally unique name
