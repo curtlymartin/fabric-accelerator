@@ -28,7 +28,7 @@ param create_purview bool = true
 param enable_purview bool = true
 
 @description('Resource group where Purview will be deployed. Resource group will be created if it doesnt exist')
-param purviewrg string = 'cdp'
+param purviewrg string = 'purviewcdp'
 
 @description('Location of Purview resource. This may not be same as the Fabric resource group location')
 
@@ -41,7 +41,7 @@ param purview_name string = 'curtlymartin-cdp-purview'
 param enable_audit bool = true
 
 @description('Resource group where audit resources will be deployed if enabled. Resource group will be created if it doesnt exist')
-param auditrg string = 'cdp'
+param auditrg string = 'auditcdp'
 
 
 
