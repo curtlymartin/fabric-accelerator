@@ -7,7 +7,7 @@ param dprg string = 'cdp'
 
 @description('Microsoft Fabric Resource group location')
 //CM - it's not stipulated whether to use the location ID or just the Location. In this case below Location ID would be: australiasoutheast
-param rglocation string = 'Australia Southeast'
+param rglocation string = 'australiasoutheast'
 
 @description('Cost Centre tag that will be applied to all resources in this deployment')
 param cost_centre_tag string = 'cdp'
