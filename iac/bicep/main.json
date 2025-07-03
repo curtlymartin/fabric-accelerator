@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.36.1.42791",
-      "templateHash": "5421247015518507781"
+      "templateHash": "13933097415327558230"
     }
   },
   "parameters": {
@@ -60,7 +60,7 @@
     },
     "purviewrg": {
       "type": "string",
-      "defaultValue": "cdp",
+      "defaultValue": "purviewcdp",
       "metadata": {
         "description": "Resource group where Purview will be deployed. Resource group will be created if it doesnt exist"
       }
@@ -88,7 +88,7 @@
     },
     "auditrg": {
       "type": "string",
-      "defaultValue": "cdp",
+      "defaultValue": "auditcdp",
       "metadata": {
         "description": "Resource group where audit resources will be deployed if enabled. Resource group will be created if it doesnt exist"
       }

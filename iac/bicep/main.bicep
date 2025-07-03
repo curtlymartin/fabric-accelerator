@@ -32,7 +32,7 @@ param purviewrg string = 'purviewcdp'
 
 @description('Location of Purview resource. This may not be same as the Fabric resource group location')
 
-param purview_location string= 'australiasoutheast'
+param purview_location string= 'australiaeast'
 
 @description('Resource Name of new or existing Purview Account. Must be globally unique. Specify a resource name if either create_purview=true or enable_purview=true')
 param purview_name string = 'curtlymartin-cdp-purview'
