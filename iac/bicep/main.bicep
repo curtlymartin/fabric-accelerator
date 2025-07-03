@@ -1,4 +1,3 @@
-
 targetScope = 'subscription'
 
 // Parameters
@@ -6,7 +5,6 @@ targetScope = 'subscription'
 param dprg string = 'cdp'
 
 @description('Microsoft Fabric Resource group location')
-//CM - it's not stipulated whether to use the location ID or just the Location. In this case below Location ID would be: australiasoutheast
 param rglocation string = 'australiasoutheast'
 
 @description('Cost Centre tag that will be applied to all resources in this deployment')
@@ -20,8 +18,11 @@ param owner_tag string = 'Curt Martin'
 param sme_tag string ='Curt Martin'
 
 
+@description('Location where resources will be deployed. Defaults to resource group location')
+param location string = resourceGroup().location
+
 @description('Timestamp that will be appended to the deployment name')
-param deployment_suffix string = utcNow()
+var deployment_suffix = uniqueString(resourceGroup().id, location)
 
 @description('Flag to indicate whether to create a new Purview resource with this data platform deployment')
 param create_purview bool = true
