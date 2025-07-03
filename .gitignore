@@ -397,3 +397,4 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 iac/bicep/benny_main.bicep
+iac/bicep/main.json

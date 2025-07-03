@@ -1,4 +1,3 @@
-
 targetScope = 'subscription'
 
 // Parameters
@@ -6,8 +5,7 @@ targetScope = 'subscription'
 param dprg string = 'cdp'
 
 @description('Microsoft Fabric Resource group location')
-//CM - it's not stipulated whether to use the location ID or just the Location. In this case below Location ID would be: australiasoutheast
-param rglocation string = 'Australia Southeast'
+param rglocation string = 'australiasoutheast'
 
 @description('Cost Centre tag that will be applied to all resources in this deployment')
 param cost_centre_tag string = 'cdp'
@@ -21,7 +19,7 @@ param sme_tag string ='Curt Martin'
 
 
 @description('Timestamp that will be appended to the deployment name')
-param deployment_suffix string = utcNow()
+var deployment_suffix = uniqueString(subscription().id, rglocation)
 
 @description('Flag to indicate whether to create a new Purview resource with this data platform deployment')
 param create_purview bool = true
@@ -30,11 +28,11 @@ param create_purview bool = true
 param enable_purview bool = true
 
 @description('Resource group where Purview will be deployed. Resource group will be created if it doesnt exist')
-param purviewrg string = 'cdp'
+param purviewrg string = 'purviewcdp'
 
 @description('Location of Purview resource. This may not be same as the Fabric resource group location')
 
-param purview_location string= 'australiasoutheast'
+param purview_location string= 'australiaeast'
 
 @description('Resource Name of new or existing Purview Account. Must be globally unique. Specify a resource name if either create_purview=true or enable_purview=true')
 param purview_name string = 'curtlymartin-cdp-purview'
@@ -43,7 +41,7 @@ param purview_name string = 'curtlymartin-cdp-purview'
 param enable_audit bool = true
 
 @description('Resource group where audit resources will be deployed if enabled. Resource group will be created if it doesnt exist')
-param auditrg string = 'cdp'
+param auditrg string = 'auditcdp'
 
 
 
@@ -114,8 +112,8 @@ module kv './modules/keyvault.bicep' = {
     cost_centre_tag: cost_centre_tag
     owner_tag: owner_tag
     sme_tag: sme_tag
-    purview_account_name: enable_purview ? purview.outputs.purview_account_name : ''
-    purviewrg: enable_purview ? purviewrg : ''
+    purview_account_name: (create_purview || enable_purview) ? purview.outputs.purview_account_name : ''
+    purviewrg: (create_purview || enable_purview) ? purviewrg : ''
     enable_purview: enable_purview
   }
 }
@@ -171,7 +169,7 @@ module controldb './modules/sqldb.bicep' = {
     auto_pause_duration: 60
     database_sku_name: 'GP_S_Gen5_1'
     enable_purview: enable_purview
-    purview_resource: enable_purview ? purview.outputs.purview_resource : {}
+    purview_resource: (create_purview || enable_purview) ? purview.outputs.purview_resource : {}
     enable_audit: false
     audit_storage_name: enable_audit ? audit_integration.outputs.audit_storage_uniquename : ''
     auditrg: enable_audit ? audit_rg.name : ''

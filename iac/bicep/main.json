@@ -1,0 +1,1214 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.36.1.42791",
+      "templateHash": "16624475478084786895"
+    }
+  },
+  "parameters": {
+    "dprg": {
+      "type": "string",
+      "defaultValue": "cdp",
+      "metadata": {
+        "description": "Resource group where Microsoft Fabric capacity will be deployed. Resource group will be created if it doesnt exist"
+      }
+    },
+    "rglocation": {
+      "type": "string",
+      "defaultValue": "australiasoutheast",
+      "metadata": {
+        "description": "Microsoft Fabric Resource group location"
+      }
+    },
+    "cost_centre_tag": {
+      "type": "string",
+      "defaultValue": "cdp",
+      "metadata": {
+        "description": "Cost Centre tag that will be applied to all resources in this deployment"
+      }
+    },
+    "owner_tag": {
+      "type": "string",
+      "defaultValue": "Curt Martin",
+      "metadata": {
+        "description": "System Owner tag that will be applied to all resources in this deployment"
+      }
+    },
+    "sme_tag": {
+      "type": "string",
+      "defaultValue": "Curt Martin",
+      "metadata": {
+        "description": "Subject Matter EXpert (SME) tag that will be applied to all resources in this deployment"
+      }
+    },
+    "create_purview": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Flag to indicate whether to create a new Purview resource with this data platform deployment"
+      }
+    },
+    "enable_purview": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Flag to indicate whether to enable integration of data platform resources with either an existing or new Purview resource"
+      }
+    },
+    "purviewrg": {
+      "type": "string",
+      "defaultValue": "purviewcdp",
+      "metadata": {
+        "description": "Resource group where Purview will be deployed. Resource group will be created if it doesnt exist"
+      }
+    },
+    "purview_location": {
+      "type": "string",
+      "defaultValue": "australiaeast",
+      "metadata": {
+        "description": "Location of Purview resource. This may not be same as the Fabric resource group location"
+      }
+    },
+    "purview_name": {
+      "type": "string",
+      "defaultValue": "curtlymartin-cdp-purview",
+      "metadata": {
+        "description": "Resource Name of new or existing Purview Account. Must be globally unique. Specify a resource name if either create_purview=true or enable_purview=true"
+      }
+    },
+    "enable_audit": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Flag to indicate whether auditing of data platform resources should be enabled"
+      }
+    },
+    "auditrg": {
+      "type": "string",
+      "defaultValue": "auditcdp",
+      "metadata": {
+        "description": "Resource group where audit resources will be deployed if enabled. Resource group will be created if it doesnt exist"
+      }
+    }
+  },
+  "variables": {
+    "deployment_suffix": "[uniqueString(subscription().id, parameters('rglocation'))]",
+    "fabric_deployment_name": "[format('fabric_dataplatform_deployment_{0}', variables('deployment_suffix'))]",
+    "purview_deployment_name": "[format('purview_deployment_{0}', variables('deployment_suffix'))]",
+    "keyvault_deployment_name": "[format('keyvault_deployment_{0}', variables('deployment_suffix'))]",
+    "audit_deployment_name": "[format('audit_deployment_{0}', variables('deployment_suffix'))]",
+    "controldb_deployment_name": "[format('controldb_deployment_{0}', variables('deployment_suffix'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2024-03-01",
+      "name": "[parameters('dprg')]",
+      "location": "[parameters('rglocation')]",
+      "tags": {
+        "CostCentre": "[parameters('cost_centre_tag')]",
+        "Owner": "[parameters('owner_tag')]",
+        "SME": "[parameters('sme_tag')]"
+      }
+    },
+    {
+      "condition": "[parameters('create_purview')]",
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2024-03-01",
+      "name": "[parameters('purviewrg')]",
+      "location": "[parameters('purview_location')]",
+      "tags": {
+        "CostCentre": "[parameters('cost_centre_tag')]",
+        "Owner": "[parameters('owner_tag')]",
+        "SME": "[parameters('sme_tag')]"
+      }
+    },
+    {
+      "condition": "[parameters('enable_audit')]",
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2024-03-01",
+      "name": "[parameters('auditrg')]",
+      "location": "[parameters('rglocation')]",
+      "tags": {
+        "CostCentre": "[parameters('cost_centre_tag')]",
+        "Owner": "[parameters('owner_tag')]",
+        "SME": "[parameters('sme_tag')]"
+      }
+    },
+    {
+      "condition": "[or(parameters('create_purview'), parameters('enable_purview'))]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "[variables('purview_deployment_name')]",
+      "resourceGroup": "[parameters('purviewrg')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "create_purview": {
+            "value": "[parameters('create_purview')]"
+          },
+          "enable_purview": {
+            "value": "[parameters('enable_purview')]"
+          },
+          "purviewrg": {
+            "value": "[parameters('purviewrg')]"
+          },
+          "purview_name": {
+            "value": "[parameters('purview_name')]"
+          },
+          "location": {
+            "value": "[parameters('purview_location')]"
+          },
+          "cost_centre_tag": {
+            "value": "[parameters('cost_centre_tag')]"
+          },
+          "owner_tag": {
+            "value": "[parameters('owner_tag')]"
+          },
+          "sme_tag": {
+            "value": "[parameters('sme_tag')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.36.1.42791",
+              "templateHash": "8235393734830532471"
+            }
+          },
+          "parameters": {
+            "create_purview": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Flag to indicate whether to create a new Purview resource with this data platform deployment"
+              }
+            },
+            "enable_purview": {
+              "type": "bool",
+              "defaultValue": true,
+              "metadata": {
+                "description": "Flag to indicate whether to enable integration of data platform resources with either an existing or new Purview resource"
+              }
+            },
+            "purview_name": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource Name of new or existing Purview Account. Specify a resource name if create_purview=true or enable_purview=true"
+              }
+            },
+            "purviewrg": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource group where Purview will be deployed. Resource group will be created if it doesnt exist"
+              }
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]",
+              "metadata": {
+                "description": "Location where resources will be deployed. Defaults to resource group location"
+              }
+            },
+            "cost_centre_tag": {
+              "type": "string",
+              "metadata": {
+                "description": "Cost Centre tag that will be applied to all resources in this deployment"
+              }
+            },
+            "owner_tag": {
+              "type": "string",
+              "metadata": {
+                "description": "System Owner tag that will be applied to all resources in this deployment"
+              }
+            },
+            "sme_tag": {
+              "type": "string",
+              "metadata": {
+                "description": "Subject Matter Expert (SME) tag that will be applied to all resources in this deployment"
+              }
+            }
+          },
+          "variables": {
+            "purview_uniquename": "[parameters('purview_name')]",
+            "managed_synapse_rg_name": "[format('mrg_{0}', variables('purview_uniquename'))]"
+          },
+          "resources": [
+            {
+              "condition": "[parameters('create_purview')]",
+              "type": "Microsoft.Purview/accounts",
+              "apiVersion": "2024-04-01-preview",
+              "name": "[variables('purview_uniquename')]",
+              "location": "[parameters('location')]",
+              "tags": {
+                "CostCentre": "[parameters('cost_centre_tag')]",
+                "Owner": "[parameters('owner_tag')]",
+                "SME": "[parameters('sme_tag')]"
+              },
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "properties": {
+                "managedResourceGroupName": "[variables('managed_synapse_rg_name')]",
+                "publicNetworkAccess": "Enabled"
+              }
+            }
+          ],
+          "outputs": {
+            "purview_account_name": {
+              "type": "string",
+              "value": "[if(parameters('create_purview'), variables('purview_uniquename'), variables('purview_uniquename'))]"
+            },
+            "purview_resourceid": {
+              "type": "string",
+              "value": "[if(parameters('create_purview'), resourceId('Microsoft.Purview/accounts', variables('purview_uniquename')), extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('purviewrg')), 'Microsoft.Purview/accounts', variables('purview_uniquename')))]"
+            },
+            "purview_resource": {
+              "type": "object",
+              "value": "[if(parameters('create_purview'), reference(resourceId('Microsoft.Purview/accounts', variables('purview_uniquename')), '2024-04-01-preview', 'full'), reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('purviewrg')), 'Microsoft.Purview/accounts', variables('purview_uniquename')), '2024-04-01-preview', 'full'))]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('purviewrg'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "[variables('keyvault_deployment_name')]",
+      "resourceGroup": "[parameters('dprg')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('dprg')), '2024-03-01', 'full').location]"
+          },
+          "keyvault_name": {
+            "value": "cdp-kv01"
+          },
+          "cost_centre_tag": {
+            "value": "[parameters('cost_centre_tag')]"
+          },
+          "owner_tag": {
+            "value": "[parameters('owner_tag')]"
+          },
+          "sme_tag": {
+            "value": "[parameters('sme_tag')]"
+          },
+          "purview_account_name": "[if(or(parameters('create_purview'), parameters('enable_purview')), createObject('value', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('purviewrg')), 'Microsoft.Resources/deployments', variables('purview_deployment_name')), '2022-09-01').outputs.purview_account_name.value), createObject('value', ''))]",
+          "purviewrg": "[if(or(parameters('create_purview'), parameters('enable_purview')), createObject('value', parameters('purviewrg')), createObject('value', ''))]",
+          "enable_purview": {
+            "value": "[parameters('enable_purview')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.36.1.42791",
+              "templateHash": "1871205934889022262"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]",
+              "metadata": {
+                "description": "Location where resources will be deployed. Defaults to resource group location"
+              }
+            },
+            "cost_centre_tag": {
+              "type": "string",
+              "metadata": {
+                "description": "Cost Centre tag that will be applied to all resources in this deployment"
+              }
+            },
+            "owner_tag": {
+              "type": "string",
+              "metadata": {
+                "description": "System Owner tag that will be applied to all resources in this deployment"
+              }
+            },
+            "sme_tag": {
+              "type": "string",
+              "metadata": {
+                "description": "Subject Matter Expert (SME) tag that will be applied to all resources in this deployment"
+              }
+            },
+            "keyvault_name": {
+              "type": "string",
+              "metadata": {
+                "description": "Key Vault name"
+              }
+            },
+            "purview_account_name": {
+              "type": "string",
+              "metadata": {
+                "description": "Purview Account name"
+              }
+            },
+            "purviewrg": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource group of Purview Account"
+              }
+            },
+            "enable_purview": {
+              "type": "bool",
+              "defaultValue": true,
+              "metadata": {
+                "description": "Flag to indicate whether to enable integration of data platform resources with either an existing or new Purview resource"
+              }
+            }
+          },
+          "variables": {
+            "suffix": "[uniqueString(resourceGroup().id)]",
+            "keyvault_uniquename": "[format('{0}-{1}', parameters('keyvault_name'), variables('suffix'))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.KeyVault/vaults",
+              "apiVersion": "2023-07-01",
+              "name": "[variables('keyvault_uniquename')]",
+              "location": "[parameters('location')]",
+              "tags": {
+                "CostCentre": "[parameters('cost_centre_tag')]",
+                "Owner": "[parameters('owner_tag')]",
+                "SME": "[parameters('sme_tag')]"
+              },
+              "properties": {
+                "tenantId": "[subscription().tenantId]",
+                "sku": {
+                  "family": "A",
+                  "name": "standard"
+                },
+                "enabledForDeployment": true,
+                "enabledForDiskEncryption": true,
+                "enabledForTemplateDeployment": true,
+                "accessPolicies": [
+                  {
+                    "tenantId": "[subscription().tenantId]",
+                    "objectId": "6f9a59e7-038b-4326-a2e0-27cf6a6b8b8c",
+                    "permissions": {
+                      "secrets": [
+                        "list",
+                        "get",
+                        "set"
+                      ]
+                    }
+                  },
+                  {
+                    "tenantId": "[subscription().tenantId]",
+                    "objectId": "cd9d60b6-66f7-42d9-ab81-df6b99e88881",
+                    "permissions": {
+                      "secrets": [
+                        "list",
+                        "get",
+                        "set"
+                      ]
+                    }
+                  },
+                  {
+                    "tenantId": "[subscription().tenantId]",
+                    "objectId": "5f6ec89a-b884-4750-8ff8-0d9492638706",
+                    "permissions": {
+                      "secrets": [
+                        "list",
+                        "get"
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "condition": "[parameters('enable_purview')]",
+              "type": "Microsoft.KeyVault/vaults/accessPolicies",
+              "apiVersion": "2022-07-01",
+              "name": "[format('{0}/{1}', variables('keyvault_uniquename'), 'add')]",
+              "properties": {
+                "accessPolicies": [
+                  {
+                    "tenantId": "[subscription().tenantId]",
+                    "objectId": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('purviewrg')), 'Microsoft.Purview/accounts', parameters('purview_account_name')), '2021-07-01', 'full').identity.principalId]",
+                    "permissions": {
+                      "secrets": [
+                        "list",
+                        "get"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', variables('keyvault_uniquename'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "keyvault_name": {
+              "type": "string",
+              "value": "[variables('keyvault_uniquename')]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('dprg'))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('purviewrg')), 'Microsoft.Resources/deployments', variables('purview_deployment_name'))]"
+      ]
+    },
+    {
+      "condition": "[parameters('enable_audit')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "[variables('audit_deployment_name')]",
+      "resourceGroup": "[parameters('auditrg')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('auditrg')), '2024-03-01', 'full').location]"
+          },
+          "cost_centre_tag": {
+            "value": "[parameters('cost_centre_tag')]"
+          },
+          "owner_tag": {
+            "value": "[parameters('owner_tag')]"
+          },
+          "sme_tag": {
+            "value": "[parameters('sme_tag')]"
+          },
+          "audit_storage_name": {
+            "value": "cdpauditstorage01"
+          },
+          "audit_storage_sku": {
+            "value": "Standard_LRS"
+          },
+          "audit_loganalytics_name": {
+            "value": "cdp-loganalytics01"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.36.1.42791",
+              "templateHash": "4086468774909856248"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]",
+              "metadata": {
+                "description": "Location where resources will be deployed. Defaults to resource group location"
+              }
+            },
+            "cost_centre_tag": {
+              "type": "string",
+              "metadata": {
+                "description": "Cost Centre tag that will be applied to all resources in this deployment"
+              }
+            },
+            "owner_tag": {
+              "type": "string",
+              "metadata": {
+                "description": "System Owner tag that will be applied to all resources in this deployment"
+              }
+            },
+            "sme_tag": {
+              "type": "string",
+              "metadata": {
+                "description": "Subject Matter Expert (SME) tag that will be applied to all resources in this deployment"
+              }
+            },
+            "audit_storage_name": {
+              "type": "string",
+              "metadata": {
+                "description": "Audit Storage name"
+              }
+            },
+            "audit_storage_sku": {
+              "type": "string",
+              "defaultValue": "Standard_LRS",
+              "allowedValues": [
+                "Premium_LRS",
+                "Premium_ZRS",
+                "Standard_GRS",
+                "Standard_GZRS",
+                "Standard_LRS",
+                "Standard_RAGRS",
+                "Standard_RAGZRS",
+                "Standard_ZRS"
+              ],
+              "metadata": {
+                "description": "Datalake SKU. Allowed values are Premium_LRS, Premium_ZRS, Standard_GRS, Standard_GZRS, Standard_LRS,Standard_RAGRS, Standard_RAGZRS, Standard_ZRS"
+              }
+            },
+            "audit_loganalytics_name": {
+              "type": "string",
+              "metadata": {
+                "description": "Audit Log Analytic Workspace name"
+              }
+            }
+          },
+          "variables": {
+            "suffix": "[uniqueString(resourceGroup().id)]",
+            "audit_storage_uniquename": "[substring(format('{0}{1}', parameters('audit_storage_name'), variables('suffix')), 0, 24)]",
+            "audit_loganalytics_uniquename": "[format('{0}-{1}', parameters('audit_loganalytics_name'), variables('suffix'))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Storage/storageAccounts",
+              "apiVersion": "2023-01-01",
+              "name": "[variables('audit_storage_uniquename')]",
+              "location": "[parameters('location')]",
+              "tags": {
+                "CostCentre": "[parameters('cost_centre_tag')]",
+                "Owner": "[parameters('owner_tag')]",
+                "SME": "[parameters('sme_tag')]"
+              },
+              "sku": {
+                "name": "[parameters('audit_storage_sku')]"
+              },
+              "kind": "StorageV2",
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "properties": {
+                "accessTier": "Cool",
+                "allowBlobPublicAccess": true,
+                "allowSharedKeyAccess": false,
+                "isHnsEnabled": true,
+                "minimumTlsVersion": "TLS1_2",
+                "networkAcls": {
+                  "bypass": "AzureServices",
+                  "defaultAction": "Allow",
+                  "ipRules": [],
+                  "virtualNetworkRules": []
+                }
+              }
+            },
+            {
+              "type": "Microsoft.OperationalInsights/workspaces",
+              "apiVersion": "2022-10-01",
+              "name": "[variables('audit_loganalytics_uniquename')]",
+              "location": "[parameters('location')]",
+              "tags": {
+                "CostCentre": "[parameters('cost_centre_tag')]",
+                "Owner": "[parameters('owner_tag')]",
+                "SME": "[parameters('sme_tag')]"
+              },
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "properties": {
+                "publicNetworkAccessForIngestion": "Enabled",
+                "publicNetworkAccessForQuery": "Enabled",
+                "retentionInDays": 30,
+                "sku": {
+                  "name": "PerGB2018"
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "audit_storage_uniquename": {
+              "type": "string",
+              "value": "[variables('audit_storage_uniquename')]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('auditrg'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "[variables('fabric_deployment_name')]",
+      "resourceGroup": "[parameters('dprg')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "fabric_name": {
+            "value": "cdpfabric01"
+          },
+          "location": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('dprg')), '2024-03-01', 'full').location]"
+          },
+          "cost_centre_tag": {
+            "value": "[parameters('cost_centre_tag')]"
+          },
+          "owner_tag": {
+            "value": "[parameters('owner_tag')]"
+          },
+          "sme_tag": {
+            "value": "[parameters('sme_tag')]"
+          },
+          "adminUsers": {
+            "reference": {
+              "keyVault": {
+                "id": "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('dprg')), 'Microsoft.KeyVault/vaults', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('dprg')), 'Microsoft.Resources/deployments', variables('keyvault_deployment_name')), '2022-09-01').outputs.keyvault_name.value)]"
+              },
+              "secretName": "fabric-capacity-admin-username"
+            }
+          },
+          "skuName": {
+            "value": "F2"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.36.1.42791",
+              "templateHash": "12006857591569777547"
+            }
+          },
+          "parameters": {
+            "fabric_name": {
+              "type": "string",
+              "metadata": {
+                "description": "The name of the Fabric Capacity."
+              }
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]",
+              "metadata": {
+                "description": "The Azure Region to deploy the resources into."
+              }
+            },
+            "cost_centre_tag": {
+              "type": "string",
+              "metadata": {
+                "description": "Cost Centre tag that will be applied to all resources in this deployment"
+              }
+            },
+            "owner_tag": {
+              "type": "string",
+              "metadata": {
+                "description": "System Owner tag that will be applied to all resources in this deployment"
+              }
+            },
+            "sme_tag": {
+              "type": "string",
+              "metadata": {
+                "description": "Subject Matter Expert (SME) tag that will be applied to all resources in this deployment"
+              }
+            },
+            "skuName": {
+              "type": "string",
+              "defaultValue": "F2",
+              "allowedValues": [
+                "F2",
+                "F4",
+                "F8",
+                "F16",
+                "F32",
+                "F64",
+                "F128",
+                "F256",
+                "F512",
+                "F1024",
+                "F2048"
+              ],
+              "metadata": {
+                "description": "The SKU name of the Fabric Capacity."
+              }
+            },
+            "skuTier": {
+              "type": "string",
+              "defaultValue": "Fabric",
+              "metadata": {
+                "description": "The SKU tier of the Fabric Capacity instance."
+              }
+            },
+            "adminUsers": {
+              "type": "securestring",
+              "metadata": {
+                "description": "The list of administrators for the Fabric Capacity instance."
+              }
+            }
+          },
+          "variables": {
+            "suffix": "[uniqueString(resourceGroup().id)]",
+            "fabric_uniquename": "[format('{0}{1}', parameters('fabric_name'), variables('suffix'))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Fabric/capacities",
+              "apiVersion": "2023-11-01",
+              "name": "[toLower(variables('fabric_uniquename'))]",
+              "location": "[parameters('location')]",
+              "tags": {
+                "CostCentre": "[parameters('cost_centre_tag')]",
+                "Owner": "[parameters('owner_tag')]",
+                "SME": "[parameters('sme_tag')]"
+              },
+              "sku": {
+                "name": "[parameters('skuName')]",
+                "tier": "[parameters('skuTier')]"
+              },
+              "properties": {
+                "administration": {
+                  "members": [
+                    "[parameters('adminUsers')]"
+                  ]
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "resourceId": {
+              "type": "string",
+              "metadata": {
+                "description": "The ID of the Fabric Capacity."
+              },
+              "value": "[resourceId('Microsoft.Fabric/capacities', toLower(variables('fabric_uniquename')))]"
+            },
+            "resourceName": {
+              "type": "string",
+              "metadata": {
+                "description": "The name of the Fabric Capacity."
+              },
+              "value": "[toLower(variables('fabric_uniquename'))]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('dprg'))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('dprg')), 'Microsoft.Resources/deployments', variables('keyvault_deployment_name'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "[variables('controldb_deployment_name')]",
+      "resourceGroup": "[parameters('dprg')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "sqlserver_name": {
+            "value": "cdp-sql01"
+          },
+          "database_name": {
+            "value": "cdpcontrolDB"
+          },
+          "location": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('dprg')), '2024-03-01', 'full').location]"
+          },
+          "cost_centre_tag": {
+            "value": "[parameters('cost_centre_tag')]"
+          },
+          "owner_tag": {
+            "value": "[parameters('owner_tag')]"
+          },
+          "sme_tag": {
+            "value": "[parameters('sme_tag')]"
+          },
+          "ad_admin_username": {
+            "reference": {
+              "keyVault": {
+                "id": "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('dprg')), 'Microsoft.KeyVault/vaults', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('dprg')), 'Microsoft.Resources/deployments', variables('keyvault_deployment_name')), '2022-09-01').outputs.keyvault_name.value)]"
+              },
+              "secretName": "sqlserver-ad-admin-username"
+            }
+          },
+          "ad_admin_sid": {
+            "reference": {
+              "keyVault": {
+                "id": "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('dprg')), 'Microsoft.KeyVault/vaults', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('dprg')), 'Microsoft.Resources/deployments', variables('keyvault_deployment_name')), '2022-09-01').outputs.keyvault_name.value)]"
+              },
+              "secretName": "sqlserver-ad-admin-sid"
+            }
+          },
+          "auto_pause_duration": {
+            "value": 60
+          },
+          "database_sku_name": {
+            "value": "GP_S_Gen5_1"
+          },
+          "enable_purview": {
+            "value": "[parameters('enable_purview')]"
+          },
+          "purview_resource": "[if(or(parameters('create_purview'), parameters('enable_purview')), createObject('value', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('purviewrg')), 'Microsoft.Resources/deployments', variables('purview_deployment_name')), '2022-09-01').outputs.purview_resource.value), createObject('value', createObject()))]",
+          "enable_audit": {
+            "value": false
+          },
+          "audit_storage_name": "[if(parameters('enable_audit'), createObject('value', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('auditrg')), 'Microsoft.Resources/deployments', variables('audit_deployment_name')), '2022-09-01').outputs.audit_storage_uniquename.value), createObject('value', ''))]",
+          "auditrg": "[if(parameters('enable_audit'), createObject('value', parameters('auditrg')), createObject('value', ''))]"
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.36.1.42791",
+              "templateHash": "8318950178411239371"
+            }
+          },
+          "parameters": {
+            "sqlserver_name": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of SQL Server"
+              }
+            },
+            "database_name": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of Database"
+              }
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]",
+              "metadata": {
+                "description": "Azure Location SQL Server"
+              }
+            },
+            "cost_centre_tag": {
+              "type": "string",
+              "metadata": {
+                "description": "Cost Centre tag that will be applied to all resources in this deployment"
+              }
+            },
+            "owner_tag": {
+              "type": "string",
+              "metadata": {
+                "description": "System Owner tag that will be applied to all resources in this deployment"
+              }
+            },
+            "sme_tag": {
+              "type": "string",
+              "metadata": {
+                "description": "Subject Matter Expert (SME) tag that will be applied to all resources in this deployment"
+              }
+            },
+            "ad_admin_username": {
+              "type": "securestring",
+              "metadata": {
+                "description": "AD server admin user name"
+              }
+            },
+            "ad_admin_sid": {
+              "type": "securestring",
+              "metadata": {
+                "description": "SID (object ID) of the server administrator"
+              }
+            },
+            "database_sku_name": {
+              "type": "string",
+              "defaultValue": "GP_S_Gen5_1",
+              "metadata": {
+                "description": "Database SKU name, e.g P3. For valid values, run this CLI az sql db list-editions -l australiaeast -o table"
+              }
+            },
+            "auto_pause_duration": {
+              "type": "int",
+              "defaultValue": 60,
+              "metadata": {
+                "description": "Time in minutes after which database is automatically paused"
+              }
+            },
+            "enable_purview": {
+              "type": "bool",
+              "metadata": {
+                "description": "Flag to indicate whether to enable integration of data platform resources with either an existing or new Purview resource"
+              }
+            },
+            "enable_audit": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Flag to indicate whether to enable audit logging of SQL Server"
+              }
+            },
+            "purview_resource": {
+              "type": "object",
+              "metadata": {
+                "description": "Resource Name of new or existing Purview Account. Specify a resource name if create_purview=true or enable_purview=true"
+              }
+            },
+            "audit_storage_name": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource name of audit storage account."
+              }
+            },
+            "auditrg": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource group of audit storage account is deployed"
+              }
+            }
+          },
+          "variables": {
+            "suffix": "[uniqueString(resourceGroup().id)]",
+            "sqlserver_unique_name": "[format('{0}-{1}', parameters('sqlserver_name'), variables('suffix'))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Sql/servers",
+              "apiVersion": "2023-08-01-preview",
+              "name": "[variables('sqlserver_unique_name')]",
+              "location": "[parameters('location')]",
+              "tags": {
+                "CostCentre": "[parameters('cost_centre_tag')]",
+                "Owner": "[parameters('owner_tag')]",
+                "SME": "[parameters('sme_tag')]"
+              },
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "properties": {
+                "administrators": {
+                  "administratorType": "ActiveDirectory",
+                  "azureADOnlyAuthentication": true,
+                  "login": "[parameters('ad_admin_username')]",
+                  "sid": "[parameters('ad_admin_sid')]",
+                  "principalType": "User",
+                  "tenantId": "[subscription().tenantId]"
+                },
+                "minimalTlsVersion": "1.2"
+              }
+            },
+            {
+              "type": "Microsoft.Sql/servers/firewallRules",
+              "apiVersion": "2021-11-01",
+              "name": "[format('{0}/{1}', variables('sqlserver_unique_name'), 'AllowAllWindowsAzureIps')]",
+              "properties": {
+                "startIpAddress": "0.0.0.0",
+                "endIpAddress": "0.0.0.0"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', variables('sqlserver_unique_name'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Sql/servers/databases",
+              "apiVersion": "2021-11-01",
+              "name": "[format('{0}/{1}', variables('sqlserver_unique_name'), parameters('database_name'))]",
+              "location": "[parameters('location')]",
+              "tags": {
+                "CostCentre": "[parameters('cost_centre_tag')]",
+                "Owner": "[parameters('owner_tag')]",
+                "SME": "[parameters('sme_tag')]"
+              },
+              "sku": {
+                "name": "[parameters('database_sku_name')]"
+              },
+              "properties": {
+                "autoPauseDelay": "[parameters('auto_pause_duration')]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', variables('sqlserver_unique_name'))]"
+              ]
+            },
+            {
+              "condition": "[parameters('enable_audit')]",
+              "type": "Microsoft.Sql/servers/auditingSettings",
+              "apiVersion": "2023-08-01-preview",
+              "name": "[format('{0}/{1}', variables('sqlserver_unique_name'), 'default')]",
+              "properties": {
+                "auditActionsAndGroups": [
+                  "BATCH_COMPLETED_GROUP",
+                  "SUCCESSFUL_DATABASE_AUTHENTICATION_GROUP",
+                  "FAILED_DATABASE_AUTHENTICATION_GROUP"
+                ],
+                "isAzureMonitorTargetEnabled": true,
+                "isDevopsAuditEnabled": true,
+                "isManagedIdentityInUse": true,
+                "isStorageSecondaryKeyInUse": false,
+                "retentionDays": 90,
+                "state": "Enabled",
+                "storageAccountSubscriptionId": "[subscription().subscriptionId]",
+                "storageEndpoint": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('auditrg')), 'Microsoft.Storage/storageAccounts', parameters('audit_storage_name')), '2023-01-01').primaryEndpoints.blob]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', variables('sqlserver_unique_name'))]"
+              ]
+            },
+            {
+              "condition": "[parameters('enable_purview')]",
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2020-04-01-preview",
+              "scope": "[format('Microsoft.Sql/servers/{0}', variables('sqlserver_unique_name'))]",
+              "name": "[guid(subscription().subscriptionId, variables('sqlserver_unique_name'), subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7'))]",
+              "properties": {
+                "principalType": "ServicePrincipal",
+                "principalId": "[parameters('purview_resource').identity.principalId]",
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', variables('sqlserver_unique_name'))]"
+              ]
+            },
+            {
+              "condition": "[parameters('enable_audit')]",
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2022-09-01",
+              "name": "storage_permissions",
+              "resourceGroup": "[parameters('auditrg')]",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "storage_name": {
+                    "value": "[parameters('audit_storage_name')]"
+                  },
+                  "storage_rg": {
+                    "value": "[parameters('auditrg')]"
+                  },
+                  "principalId": {
+                    "value": "[reference(resourceId('Microsoft.Sql/servers', variables('sqlserver_unique_name')), '2023-08-01-preview', 'full').identity.principalId]"
+                  },
+                  "grant_reader": {
+                    "value": false
+                  },
+                  "grant_contributor": {
+                    "value": true
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.36.1.42791",
+                      "templateHash": "4091079043812299337"
+                    }
+                  },
+                  "parameters": {
+                    "storage_name": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Resource name storage account to which permissions are to be granted"
+                      }
+                    },
+                    "storage_rg": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Resource group of storage account"
+                      }
+                    },
+                    "principalId": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Managed Identity of the resource being granted permissions"
+                      }
+                    },
+                    "grant_reader": {
+                      "type": "bool",
+                      "defaultValue": true,
+                      "metadata": {
+                        "description": "Flag to grant Storage Blob Data Reader role to the storage account"
+                      }
+                    },
+                    "grant_contributor": {
+                      "type": "bool",
+                      "defaultValue": true,
+                      "metadata": {
+                        "description": "Flag to grant Storage Blob Data Contributor role to the storage account"
+                      }
+                    }
+                  },
+                  "resources": [
+                    {
+                      "condition": "[parameters('grant_contributor')]",
+                      "type": "Microsoft.Authorization/roleAssignments",
+                      "apiVersion": "2020-04-01-preview",
+                      "name": "[guid(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('storage_rg')), 'Microsoft.Storage/storageAccounts', parameters('storage_name')), parameters('principalId'), subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'))]",
+                      "properties": {
+                        "principalType": "ServicePrincipal",
+                        "principalId": "[parameters('principalId')]",
+                        "roleDefinitionId": "[format('{0}/providers/Microsoft.Authorization/roleDefinitions/{1}', extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('storage_rg')), 'Microsoft.Storage/storageAccounts', parameters('storage_name')), 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]"
+                      }
+                    },
+                    {
+                      "condition": "[parameters('grant_reader')]",
+                      "type": "Microsoft.Authorization/roleAssignments",
+                      "apiVersion": "2020-04-01-preview",
+                      "name": "[guid(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('storage_rg')), 'Microsoft.Storage/storageAccounts', parameters('storage_name')), parameters('principalId'), subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7'))]",
+                      "properties": {
+                        "principalType": "ServicePrincipal",
+                        "principalId": "[parameters('principalId')]",
+                        "roleDefinitionId": "[format('{0}/providers/Microsoft.Authorization/roleDefinitions/{1}', extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('storage_rg')), 'Microsoft.Storage/storageAccounts', parameters('storage_name')), 'acdd72a7-3385-48ef-bd42-f606fba81ae7')]"
+                      }
+                    }
+                  ]
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', variables('sqlserver_unique_name'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "sqlserver_uniquename": {
+              "type": "string",
+              "value": "[variables('sqlserver_unique_name')]"
+            },
+            "database_name": {
+              "type": "string",
+              "value": "[parameters('database_name')]"
+            },
+            "sqlserver_resource": {
+              "type": "object",
+              "value": "[reference(resourceId('Microsoft.Sql/servers', variables('sqlserver_unique_name')), '2023-08-01-preview', 'full')]"
+            },
+            "database_resource": {
+              "type": "object",
+              "value": "[reference(resourceId('Microsoft.Sql/servers/databases', variables('sqlserver_unique_name'), parameters('database_name')), '2021-11-01', 'full')]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('auditrg')), 'Microsoft.Resources/deployments', variables('audit_deployment_name'))]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('auditrg'))]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('dprg'))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('dprg')), 'Microsoft.Resources/deployments', variables('keyvault_deployment_name'))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('purviewrg')), 'Microsoft.Resources/deployments', variables('purview_deployment_name'))]"
+      ]
+    }
+  ]
+}

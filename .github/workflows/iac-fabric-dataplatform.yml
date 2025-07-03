@@ -27,4 +27,9 @@ jobs:
         subscriptionId: ${{ secrets.SUBSCRIPTION_ID }}
         template: iac/bicep/main.bicep
         # parameters: 'k1=v1 k2=v2 k3=v3'
-        failOnStdErr: false
+        # Note: The latest version of the Azure ARM Deploy action is azure/arm-deploy@v1.0.10, but this repository has been deprecated.
+        # Microsoft recommends using azure/cli or azure/arm-deploy@v1 (which points to the latest v1 release).
+        # Reference: https://github.com/Azure/arm-deploy
+
+        # To use the latest stable version, update the uses line to:
+        # uses: azure/arm-deploy@v1
