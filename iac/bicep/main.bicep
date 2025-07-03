@@ -18,11 +18,8 @@ param owner_tag string = 'Curt Martin'
 param sme_tag string ='Curt Martin'
 
 
-@description('Location where resources will be deployed. Defaults to resource group location')
-param location string = resourceGroup().location
-
 @description('Timestamp that will be appended to the deployment name')
-var deployment_suffix = uniqueString(resourceGroup().id, location)
+var deployment_suffix = uniqueString(subscription().id, rglocation)
 
 @description('Flag to indicate whether to create a new Purview resource with this data platform deployment')
 param create_purview bool = true
